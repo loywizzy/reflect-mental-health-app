@@ -1,0 +1,66 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core import settings
+from app.api import auth_router, journal_router, insights_router, users_router
+
+# Create FastAPI app
+app = FastAPI(
+    title="Reflect API",
+    description="Mental Health AI Web App API - AI สะท้อน ไม่ตัดสิน",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.frontend_url, "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Health check
+@app.get("/health")
+def health_check():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "environment": settings.environment,
+    }
+
+
+# Root endpoint
+@app.get("/")
+def root():
+    """Root endpoint."""
+    return {
+        "message": "Welcome to Reflect API",
+        "docs": "/docs",
+        "version": "1.0.0",
+    }
+
+
+# Include routers
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(users_router, prefix="/api/v1")
+app.include_router(journal_router, prefix="/api/v1")
+app.include_router(insights_router, prefix="/api/v1")
+
+
+# Startup event
+@app.on_event("startup")
+async def startup_event():
+    """Run on application startup."""
+    print("🚀 Reflect API is starting...")
+    print(f"📍 Environment: {settings.environment}")
+    print(f"📚 API Documentation: http://localhost:8000/docs")
+
+
+# Shutdown event
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Run on application shutdown."""
+    print("👋 Reflect API is shutting down...")

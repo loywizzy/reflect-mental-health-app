@@ -1,0 +1,83 @@
+# ============================================================
+# PYTHON / BACKEND
+# ============================================================
+
+# Virtual environment
+backend/venv/
+backend/.venv/
+backend/env/
+
+# Python cache
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/.pytest_cache/
+
+# Environment variables
+backend/.env
+backend/.env.local
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================================
+# NODE / FRONTEND
+# ============================================================
+
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+
+# Testing
+frontend/coverage/
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+
+# Environment variables
+frontend/.env
+frontend/.env*.local
+
+# Debug
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Vercel
+frontend/.vercel
+
+# Turbopack
+frontend/.turbo
+
+# ============================================================
+# GENERAL
+# ============================================================
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Brain artifacts (optional - keep for local development)
+.gemini/
