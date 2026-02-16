@@ -27,7 +27,10 @@ def get_current_user_profile(
     ).count()
     
     # Calculate days active
-    days_active = (datetime.utcnow() - current_user.created_at).days + 1
+    # Ensure created_at is naive if needed, or make utcnow aware. 
+    # Simpler: use naive utcnow and naive created_at (User defaults are utcnow)
+    created_at_naive = current_user.created_at.replace(tzinfo=None) if current_user.created_at.tzinfo else current_user.created_at
+    days_active = (datetime.utcnow() - created_at_naive).days + 1
     
     return UserWithSettings(
         id=current_user.id,

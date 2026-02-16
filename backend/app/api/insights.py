@@ -12,6 +12,7 @@ from app.models import (
     Trigger,
     UserBaseline,
     DailySummary,
+    Reflection,
 )
 from app.schemas import (
     TrendDataPoint,
@@ -153,11 +154,17 @@ def get_dashboard(
         if top_trigger.avg_sentiment and top_trigger.avg_sentiment < -0.2:
             insights.append(f"หัวข้อ '{top_trigger.trigger.name_th or top_trigger.trigger.name}' มักเชื่อมโยงกับอารมณ์เชิงลบ")
     
+    # 5. Get Latest Reflection
+    latest_reflection = db.query(Reflection).filter(
+        Reflection.user_id == current_user.id
+    ).order_by(Reflection.created_at.desc()).first()
+
     return DashboardResponse(
         trend_data=trend_data,
         language_drift=language_drift,
         trigger_stats=trigger_stats_response,
         insights=insights,
+        latest_reflection=latest_reflection,
     )
 
 

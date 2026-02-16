@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core import settings
-from app.api import auth_router, journal_router, insights_router, users_router
+from app.api import auth_router, journal_router, insights_router, users_router, reflections_router, chat_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -15,7 +15,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url, "http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -48,6 +48,8 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 app.include_router(journal_router, prefix="/api/v1")
 app.include_router(insights_router, prefix="/api/v1")
+app.include_router(reflections_router, prefix="/api/v1")
+app.include_router(chat_router, prefix="/api/v1")
 
 
 # Startup event
@@ -56,7 +58,10 @@ async def startup_event():
     """Run on application startup."""
     print("🚀 Reflect API is starting...")
     print(f"📍 Environment: {settings.environment}")
-    print(f"📚 API Documentation: http://localhost:8000/docs")
+    print(f"🤖 Gemini Model Configured: {settings.gemini_model}")
+    import os
+    print(f"🌍 Env Var GEMINI_MODEL: {os.getenv('GEMINI_MODEL')}")
+    print(f"📚 API Documentation: {settings.frontend_url}/docs")
 
 
 # Shutdown event

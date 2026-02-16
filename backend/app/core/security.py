@@ -1,4 +1,10 @@
 from datetime import datetime, timedelta
+import bcrypt
+
+# Patch: passlib 1.7.4 doesn't support bcrypt 4.x version detection
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = type("about", (), {"__version__": bcrypt.__version__})()
+
 from passlib.context import CryptContext
 from jose import jwt
 from app.core.config import settings

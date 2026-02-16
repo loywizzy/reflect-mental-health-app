@@ -33,6 +33,9 @@ from app.schemas.schemas import (
     DailySummaryResponse,
     # Baseline
     UserBaselineResponse,
+    # Reflection
+    ReflectionRequest,
+    ReflectionResponse,
 )
 
 __all__ = [
@@ -62,4 +65,6 @@ __all__ = [
     "DashboardResponse",
     "DailySummaryResponse",
     "UserBaselineResponse",
+    "ReflectionRequest",
+    "ReflectionResponse",
 ]

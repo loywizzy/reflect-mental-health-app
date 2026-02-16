@@ -147,6 +147,29 @@ class AnalysisSnapshotResponse(BaseModel):
 
 
 # ============================================================
+# REFLECTION SCHEMAS
+# ============================================================
+
+class ReflectionRequest(BaseModel):
+    entry_id: UUID
+    force_regenerate: bool = False
+
+
+class ReflectionResponse(BaseModel):
+    model_config = {"protected_namespaces": (), "from_attributes": True}
+
+    id: UUID
+    entry_id: UUID
+    user_id: UUID
+    reflection_text: str
+    questions: Optional[list[str]] = None
+    persona: PersonaType
+    model_used: str
+    is_fallback: bool
+    created_at: datetime
+
+
+# ============================================================
 # TRIGGER SCHEMAS
 # ============================================================
 
@@ -203,6 +226,7 @@ class DashboardResponse(BaseModel):
     language_drift: list[LanguageDrift]
     trigger_stats: list[TriggerStatResponse]
     insights: list[str]
+    latest_reflection: Optional[ReflectionResponse] = None
 
 
 class DailySummaryResponse(BaseModel):

@@ -1,6 +1,6 @@
 # 📋 Project Status & Roadmap
 
-## ✅ Completed (Phase 1-3)
+## ✅ Completed (Phase 1-4)
 
 ### Phase 1: Foundation & Design
 - [x] Project structure setup
@@ -19,7 +19,7 @@
 - [x] JWT authentication
 - [x] Database migrations + seed data
 
-### Phase 3: NLP Pipeline
+### Phase 3: NLP Pipeline & Frontend
 - [x] Thai text preprocessor (PyThaiNLP + AttaCut)
 - [x] Rule-based sentiment analyzer (lexicon-based)
 - [x] Emotion detection (calm, tense, sad, happy)
@@ -27,41 +27,36 @@
 - [x] Crisis keyword detection (safety-first)
 - [x] NLP service integration
 - [x] `/journal/analyze` endpoint (preview mode)
-
-### Phase 3: Frontend Integration
-- [x] Next.js 16 setup (App Router, TypeScript)
+- [x] Next.js setup (App Router, TypeScript)
 - [x] API client + Auth context
-- [x] Pages:
-  - [x] Home (with login/register modal)
-  - [x] Journal (create entries + NLP analysis)
-  - [x] Dashboard (insights visualization)
-  - [x] Profile (settings, data export, delete)
+- [x] Pages: Home, Journal, Dashboard, Profile
 - [x] Crisis redirect flow
 - [x] Responsive design (Tailwind CSS)
 
----
-
-## 🚧 In Progress (Phase 4)
-
-### Database Setup
-- [ ] PostgreSQL installation & configuration
-- [ ] Run migrations (`alembic upgrade head`)
-- [ ] Seed sample data for testing
-- [ ] Test database connection
-
----
-
-## 📅 Upcoming (Phase 5-6)
+### Phase 4: Database & Integration
+- [x] PostgreSQL installation & configuration
+- [x] Run migrations (001 + 002)
+- [x] Database connection verified
+- [x] Backend + Frontend running together
 
 ### Phase 5: LLM Integration (AI Reflection)
-- [ ] Choose LLM provider (OpenAI GPT-4 / Gemini / Claude)
-- [ ] Design prompt templates (Thai language)
-- [ ] Implement reflection generator
-- [ ] Add `/reflections` API endpoint
-- [ ] Integrate into Dashboard UI
-- [ ] Safety guardrails (content filtering)
+- [x] Gemini API provider setup
+- [x] Prompt templates (Thai, persona-aware)
+- [x] Safety guardrails (content filtering)
+- [x] `/reflections` API endpoints (generate + get)
+- [x] Reflection component in Frontend
+- [x] End-to-end testing with real Gemini API
 
-### Phase 6: Advanced Features
+---
+
+## 📅 Upcoming (Phase 6)
+
+### Phase 6: Advanced Features & Chat
+- [ ] **AI Chat Bot** (New Request)
+  - [ ] Database Schema (Conversations, Messages)
+  - [ ] Backend API (`/chat` endpoints)
+  - [ ] Frontend Chat Interface
+  - [ ] Context Management (Memory)
 - [ ] Baseline calculation (personalized comparison)
 - [ ] Trend analysis improvements
 - [ ] Export data as PDF report
@@ -71,42 +66,10 @@
 ---
 
 ## 🚀 Deployment
-
-### Backend
-- [ ] Environment variables setup (production)
-- [ ] Deploy to Railway/Render
-- [ ] Database migration on production
+- [ ] Backend deploy (Railway/Render)
+- [ ] Frontend deploy (Vercel)
+- [ ] Production environment variables
 - [ ] API health monitoring
-
-### Frontend
-- [ ] Environment variables setup (production API URL)
-- [ ] Deploy to Vercel
-- [ ] Custom domain setup (optional)
-- [ ] Analytics integration (optional)
-
----
-
-## 🎯 Current Priority
-
-**Next Step:** Setup PostgreSQL database and run migrations
-
-```bash
-# 1. Install PostgreSQL
-sudo apt install postgresql postgresql-contrib
-
-# 2. Create database
-sudo -u postgres createdb reflect_db
-
-# 3. Update backend/.env with database URL
-DATABASE_URL=postgresql://user:password@localhost/reflect_db
-
-# 4. Run migrations
-cd backend
-alembic upgrade head
-
-# 5. Seed sample data
-psql reflect_db < database/seeds/001_sample_data.sql
-```
 
 ---
 
@@ -115,9 +78,9 @@ psql reflect_db < database/seeds/001_sample_data.sql
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1-3 | ✅ Complete | 100% |
-| Phase 4 | 🚧 In Progress | 0% |
-| Phase 5 | 📅 Planned | 0% |
+| Phase 4 | ✅ Complete | 100% |
+| Phase 5 | ✅ Complete | 100% |
 | Phase 6 | 📅 Planned | 0% |
 | Deployment | 📅 Planned | 0% |
 
-**Overall Progress: ~60%** (3/5 major phases complete)
+**Overall Progress: ~90%** (5/6 major phases complete)

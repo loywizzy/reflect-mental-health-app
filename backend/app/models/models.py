@@ -64,9 +64,11 @@ class User(Base):
     # Relationships
     settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
     journal_entries = relationship("JournalEntry", back_populates="user", cascade="all, delete-orphan")
+    reflections = relationship("Reflection", back_populates="user", cascade="all, delete-orphan")
     trigger_stats = relationship("TriggerStat", back_populates="user", cascade="all, delete-orphan")
     daily_summaries = relationship("DailySummary", back_populates="user", cascade="all, delete-orphan")
     baseline = relationship("UserBaseline", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
 
 
 class UserSettings(Base):
@@ -97,6 +99,32 @@ class JournalEntry(Base):
     user = relationship("User", back_populates="journal_entries")
     analysis = relationship("AnalysisSnapshot", back_populates="entry", uselist=False, cascade="all, delete-orphan")
     triggers = relationship("EntryTrigger", back_populates="entry", cascade="all, delete-orphan")
+    reflection = relationship("Reflection", back_populates="entry", uselist=False, cascade="all, delete-orphan")
+
+
+class Reflection(Base):
+    __tablename__ = "reflections"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    entry_id = Column(UUID(as_uuid=True), ForeignKey("journal_entries.id", ondelete="CASCADE"), unique=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    # Reflection content
+    reflection_text = Column(Text, nullable=False)
+    questions = Column(JSON)  # Array of questions
+    
+    # Metadata
+    persona = Column(Enum(PersonaType), nullable=False)
+    model_used = Column(String(50), default="gemini-1.5-flash")
+    prompt_tokens = Column(Integer, default=0)
+    completion_tokens = Column(Integer, default=0)
+    is_fallback = Column(Boolean, default=False)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    entry = relationship("JournalEntry", back_populates="reflection")
+    user = relationship("User", back_populates="reflections")
 
 
 class AnalysisSnapshot(Base):
@@ -229,3 +257,30 @@ class CrisisKeyword(Base):
     severity = Column(Integer, default=1)  # 1=low, 2=medium, 3=high
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="conversations")
+    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at")
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
+    sender = Column(String(50), nullable=False)  # 'user' or 'ai'
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    conversation = relationship("Conversation", back_populates="messages")

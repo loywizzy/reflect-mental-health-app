@@ -3,6 +3,7 @@ from app.models.models import (
     UserSettings,
     JournalEntry,
     AnalysisSnapshot,
+    Reflection,
     Trigger,
     EntryTrigger,
     TriggerStat,
@@ -13,7 +14,10 @@ from app.models.models import (
     EmotionType,
     TriggerCategory,
     LanguageType,
+    LanguageType,
     ThemeType,
+    Conversation,
+    Message,
 )
 
 __all__ = [
@@ -21,6 +25,7 @@ __all__ = [
     "UserSettings",
     "JournalEntry",
     "AnalysisSnapshot",
+    "Reflection",
     "Trigger",
     "EntryTrigger",
     "TriggerStat",
@@ -32,4 +37,6 @@ __all__ = [
     "TriggerCategory",
     "LanguageType",
     "ThemeType",
+    "Conversation",
+    "Message",
 ]

@@ -16,8 +16,8 @@ FORBIDDEN_WORDS = [
     
     # Treatment/medical advice
     "รักษา", "การรักษา",
-    "ยา", "ยารักษา",
-    "หมอ", "แพทย์", "นักจิตวิทยา" (ในบริบทแนะนำ),
+    "ยารักษา", "ทานยา", "กินยา",
+    "หมอ", "แพทย์", "นักจิตวิทยา",  # ในบริบทแนะนำ
     "ควรไปพบแพทย์", "ควรปรึกษาหมอ",
     
     # Diagnostic language
@@ -27,7 +27,10 @@ FORBIDDEN_WORDS = [
     # False promises
     "ทุกอย่างจะดีขึ้น", "จะดีขึ้นแน่นอน",
     "ไม่ต้องกังวล", "ไม่มีอะไร",
+    "ไม่ต้องกังวล", "ไม่มีอะไร",
 ]
+
+print(f"DEBUG: Loaded FORBIDDEN_WORDS: {FORBIDDEN_WORDS}")
 
 # Regex patterns for problematic phrases
 FORBIDDEN_PATTERNS = [
@@ -50,6 +53,11 @@ def check_forbidden_content(text: str) -> tuple[bool, list[str]]:
     # Check forbidden words
     for word in FORBIDDEN_WORDS:
         if word.lower() in text_lower:
+            # DEBUG: Print context
+            idx = text_lower.find(word.lower())
+            start = max(0, idx - 10)
+            end = min(len(text), idx + 10)
+            print(f"DEBUG: Violation found! Word: '{word}' Context: '{text[start:end]}'")
             violations.append(f"Forbidden word: {word}")
     
    # Check forbidden patterns
