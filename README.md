@@ -51,7 +51,7 @@ Reflect เป็น mental health web app ที่ช่วยให้ผู�
 
 ---
 
-## 📦 Installation
+## ⚡ Quick Start
 
 ### Prerequisites
 - Python 3.12+
