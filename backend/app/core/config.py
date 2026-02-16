@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     # CORS
     frontend_url: str = "http://localhost:3000"
     
+    # Gemini AI
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-1.5-flash"
+    
     # Environment
     environment: str = "development"
     debug: bool = True
