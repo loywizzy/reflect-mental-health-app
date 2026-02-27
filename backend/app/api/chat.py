@@ -89,11 +89,12 @@ async def send_message(
     # We include the *current* user message in history for the AI service if it's not committed yet?
     # SQLAlchemy session has it pending. We can pass it manually.
     
-    # Call Service
+    # Call Service — ใช้ persona จาก request ก่อน ถ้าไม่มีใช้ user default
+    effective_persona = request.persona or str(current_user.persona.value if hasattr(current_user.persona, 'value') else current_user.persona)
     ai_response_text = await generate_chat_response(
-        history=history, # This includes previous messages
+        history=history,
         current_message=request.message,
-        persona=current_user.persona
+        persona=effective_persona
     )
     
     # 4. Save AI Message

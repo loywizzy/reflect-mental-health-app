@@ -14,20 +14,16 @@ FORBIDDEN_WORDS = [
     "bipolar", "สองขั้ว",
     "schizophrenia", "จิตเภท",
     
-    # Treatment/medical advice
-    "รักษา", "การรักษา",
-    "ยารักษา", "ทานยา", "กินยา",
-    "หมอ", "แพทย์", "นักจิตวิทยา",  # ในบริบทแนะนำ
+    # Treatment/medical advice (Keep only highly specific ones to avoid false positives)
+    "ยารักษา", "กินยา", "ทานยา",
     "ควรไปพบแพทย์", "ควรปรึกษาหมอ",
     
     # Diagnostic language
     "คุณเป็น", "คุณมีปัญหา", "คุณมีอาการ",
     "คุณอาจเป็น", "คุณอาจมีปัญหา",
     
-    # False promises
-    "ทุกอย่างจะดีขึ้น", "จะดีขึ้นแน่นอน",
-    "ไม่ต้องกังวล", "ไม่มีอะไร",
-    "ไม่ต้องกังวล", "ไม่มีอะไร",
+    # False promises (Removed broad phrases like Don't worry, Everything will be fine to allow conversational comfort)
+
 ]
 
 print(f"DEBUG: Loaded FORBIDDEN_WORDS: {FORBIDDEN_WORDS}")

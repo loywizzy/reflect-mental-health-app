@@ -40,3 +40,4 @@ class ConversationResponse(ConversationBase):
 class ChatRequest(BaseModel):
     message: str
     conversation_id: Optional[UUID] = None
+    persona: Optional[str] = None  # override user default persona for this conversation

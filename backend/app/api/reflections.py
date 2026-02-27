@@ -13,7 +13,26 @@ from app.models import User, JournalEntry, Reflection, AnalysisSnapshot, EntryTr
 from app.schemas import ReflectionRequest, ReflectionResponse
 from app.llm import generate_reflection
 
+import re
+
 router = APIRouter(prefix="/reflections", tags=["reflections"])
+
+
+def _extract_questions(text: str) -> list[str] | None:
+    """
+    ดึงประโยคคำถามออกจาก reflection text
+    รองรับ ? และ ？(full-width Thai/Japanese)
+    """
+    if not text:
+        return None
+    # แยกเป็นประโยคโดย split ที่ ? หรือ ？
+    sentences = re.split(r'(?<=[?？])\s*', text.strip())
+    questions = []
+    for s in sentences:
+        s = s.strip()
+        if s and (s.endswith('?') or s.endswith('？')):
+            questions.append(s)
+    return questions if questions else None
 
 
 @router.post("/generate", response_model=ReflectionResponse, status_code=status.HTTP_201_CREATED)
@@ -80,9 +99,8 @@ async def create_reflection(
             triggers=triggers_data
         )
         
-        # Parse questions from reflection_text if needed
-        # For now, store as None - can enhance later
-        questions = None
+        # Parse คำถามออกจาก reflection_text (ประโยคที่ลงท้ายด้วย ?)
+        questions = _extract_questions(result["reflection_text"])
         
         # Save or update reflection
         if existing_reflection:

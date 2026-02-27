@@ -129,8 +129,9 @@ async def generate_chat_response(
         text = result["text"]
         
         # Validate (Safety)
-        # We reuse validation logic
-        is_safe, violations = validate_reflection(text) 
+        # Use check_forbidden_content directly to avoid length constraints of validate_reflection
+        from .safety import check_forbidden_content
+        is_safe, violations = check_forbidden_content(text) 
         if not is_safe:
              logger.warning(f"Chat unsafe: {violations}")
              return "ขออภัยครับ ระบบตรวจพบข้อความที่ไม่เหมาะสม หรือผมอาจจะไม่เข้าใจบริบท ลองพิมพ์ใหม่อีกครั้งนะครับ"
