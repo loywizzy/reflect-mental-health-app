@@ -49,31 +49,42 @@
 
 ---
 
-## 📅 Upcoming (Phase 6)
+## ✅ Phase 7: Security + UX (เสร็จแล้ว)
 
-### Phase 6: Advanced Features & Chat
-- [x] **AI Chat Bot** (New Request)
-  - [x] Database Schema (Conversations, Messages)
-  - [x] Backend API (`/chat` endpoints)
-  - [x] Frontend Chat Interface
-  - [x] Context Management (Memory)
-- [ ] **Baseline Calculation** (Personalized Comparison)
-  - [ ] Implement `calculate_user_baseline` service
-  - [ ] Trigger baseline update on new journal entry
-  - [ ] Expose baseline data in `/insights/dashboard`
-  - [ ] Frontend: Display "Better/Worse than usual" badge
-- [ ] Trend analysis improvements
-- [ ] Export data as PDF report
-- [ ] Email notifications (optional)
-- [ ] Multi-language support (EN/TH toggle)
-- [ ] Data Security & Rate Limiting (New)
+### 🛡️ Security
+- [x] Rate limiting (`slowapi`) — login 5/min, register 3/min
+- [x] CORS fix — `allowed_origins` list แทน `"*"`
+- [x] Input validation — journal content max 5,000 chars
+- [x] Gemini API quota guard — in-memory counter + warning at 90%
+
+### 🏷️ UX — Dashboard
+- [x] **Language Drift** — เปลี่ยนเป็นประโยคภาษาคน (เช่น "คุณใช้คำ 'ต้อง' บ่อยขึ้น อาจมีแรงกดดัน")
+- [x] **Baseline badge** — "ช่วงนี้รู้สึกดีกว่าปกติ 😊" + ปุ่ม ℹ️ อธิบาย baseline
+- [x] **Baseline reference line** — เส้น "ปกติของคุณ" บน mood chart
+- [x] **Journal sentiment** — แสดงเป็น "😊 รู้สึกดี" แทนตัวเลข -0.3
+- [x] **Character counter** — 0/5000 ใน journal write area
+
+### 🌐 Multi-language
+- [x] Navigation มีปุ่ม TH/EN toggle อยู่แล้ว
+- [x] เพิ่ม keys ที่ขาดใน `th.ts` + `en.ts` (noEntries, history, weeklyView, monthlyView)
+- [x] แปล section titles ให้เป็นภาษาไทย (languageDrift, triggerMap, insights)
+
+### 📈 Trend Improvements
+- [x] **7 วัน / 30 วัน toggle** — กดเปลี่ยน period ได้ในหน้า Dashboard
+- [x] **Emotion distribution donut chart** — แสดงสัดส่วนอารมณ์ในช่วงที่เลือก
+- [x] แสดงจำนวนวันที่มีข้อมูลจริงใน header
+
+### 📄 Export PDF (ทำทีหลัง)
+- [ ] ติดตั้ง `jsPDF` + `html2canvas` ใน frontend
+- [ ] Export journal + charts เป็น PDF 1 หน้า
+- [ ] ~~Email notifications~~ — **ตัดออก**
 
 ---
 
 ## 🚀 Deployment
 - [ ] Backend deploy (Railway/Render)
 - [ ] Frontend deploy (Vercel)
-- [ ] Production environment variables
+- [ ] Production environment variables (`.env.production`)
 - [ ] API health monitoring
 
 ---
@@ -82,10 +93,11 @@
 
 | Phase | Status | Progress |
 |-------|--------|----------|
-| Phase 1-3 | ✅ Complete | 100% |
+| Phase 1–3 | ✅ Complete | 100% |
 | Phase 4 | ✅ Complete | 100% |
-| Phase 5 | ✅ Complete | 100% |
-| Phase 6 | � In Progress | 60% |
+| Phase 5 (LLM) | ✅ Complete | 100% |
+| Phase 6 (Chat + Baseline BE) | ✅ Complete | 100% |
+| Phase 7 (Security + UX) | ✅ Complete | 100% |
 | Deployment | 📅 Planned | 0% |
 
-**Overall Progress: ~92%**
+**Overall Progress: ~95%** 🎉

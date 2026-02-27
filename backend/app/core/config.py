@@ -13,10 +13,15 @@ class Settings(BaseSettings):
     
     # CORS
     frontend_url: str = "http://localhost:3000"
-    
+    allowed_origins: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ]
+
     # Gemini AI
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3-flash-preview"
+    gemini_daily_limit: int = 100  # max calls per server restart
     
     # Environment
     environment: str = "development"

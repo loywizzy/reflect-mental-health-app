@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core import settings
+from app.core.limiter import setup_limiter
 from app.api import auth_router, journal_router, insights_router, users_router, reflections_router, chat_router, backfill_router
 
 # Create FastAPI app
@@ -12,13 +13,16 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# Rate Limiting
+setup_limiter(app)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 

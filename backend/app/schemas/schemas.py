@@ -85,7 +85,8 @@ class TokenData(BaseModel):
 # ============================================================
 
 class JournalEntryBase(BaseModel):
-    content: str = Field(..., min_length=1)
+    content: str = Field(..., min_length=1, max_length=5000,
+                         description="Journal content, 1-5000 characters")
     entry_date: Optional[date] = None
 
 
@@ -94,7 +95,7 @@ class JournalEntryCreate(JournalEntryBase):
 
 
 class JournalEntryUpdate(BaseModel):
-    content: Optional[str] = Field(None, min_length=1)
+    content: Optional[str] = Field(None, min_length=1, max_length=5000)
 
 
 class JournalEntryResponse(BaseModel):

@@ -6,6 +6,23 @@ Handles communication with Google Gemini API
 import google.generativeai as genai
 from app.core.config import settings
 
+# ── Quota Guard (in-memory, resets on restart) ───────────────
+_gemini_call_count: int = 0
+
+
+def check_gemini_quota() -> None:
+    """Increment call counter and raise if daily limit exceeded."""
+    global _gemini_call_count
+    _gemini_call_count += 1
+    limit = settings.gemini_daily_limit
+    if _gemini_call_count > limit:
+        raise Exception(
+            f"Gemini daily quota exceeded ({_gemini_call_count}/{limit}). "
+            "Restart the server to reset, or increase gemini_daily_limit in config."
+        )
+    if _gemini_call_count > limit * 0.9:
+        print(f"⚠️  Gemini quota warning: {_gemini_call_count}/{limit} calls used")
+
 
 def configure_gemini():
     """Configure Gemini API with key from settings"""
@@ -31,6 +48,7 @@ async def generate_text(prompt: str, model_name: str = None) -> dict:
     Returns:
         dict with 'text', 'prompt_tokens', 'completion_tokens'
     """
+    check_gemini_quota()
     try:
         model = get_gemini_model(model_name)
         
