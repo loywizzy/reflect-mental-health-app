@@ -13,6 +13,8 @@ from app.schemas import (
 )
 from app.api.auth import get_current_user
 from app.nlp import analyze_text
+from app.services.baseline import calculate_user_baseline
+from app.services.trigger_detector import detect_triggers
 
 router = APIRouter(prefix="/journal", tags=["journal"])
 
@@ -39,6 +41,19 @@ def run_analysis(entry: JournalEntry, db: Session) -> AnalysisSnapshot:
     db.add(snapshot)
     db.commit()
     db.refresh(snapshot)
+    
+    # Update User Baseline
+    calculate_user_baseline(entry.user_id, db)
+    
+    # Detect and record triggers
+    detect_triggers(
+        content=entry.content,
+        user_id=entry.user_id,
+        entry_id=entry.id,
+        sentiment_score=result["sentiment_score"],
+        db=db,
+    )
+    
     return snapshot
 
 

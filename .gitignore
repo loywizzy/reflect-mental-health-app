@@ -8,10 +8,10 @@ backend/.venv/
 backend/env/
 
 # Python cache
-backend/__pycache__/
-backend/**/__pycache__/
-backend/*.py[cod]
-backend/*$py.class
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
 backend/.pytest_cache/
 
 # Environment variables
@@ -33,33 +33,48 @@ backend/.env.local
 # NODE / FRONTEND
 # ============================================================
 
-# Dependencies
+# Dependencies (root and frontend)
+node_modules/
 frontend/node_modules/
-frontend/.pnp
-frontend/.pnp.js
+.pnp
+.pnp.js
+
+# Lock files at root level (root package.json is dev-only)
+package-lock.json
+yarn.lock
 
 # Testing
+coverage/
 frontend/coverage/
 
-# Next.js
+# Next.js build output
+.next/
 frontend/.next/
+out/
 frontend/out/
 frontend/build/
 frontend/dist/
 
 # Environment variables
+.env
+.env*.local
 frontend/.env
 frontend/.env*.local
 
 # Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
 # Vercel
+.vercel
 frontend/.vercel
 
 # Turbopack
+.turbo
 frontend/.turbo
 
 # ============================================================
@@ -81,3 +96,6 @@ logs/
 
 # Brain artifacts (optional - keep for local development)
 .gemini/
+
+# Generated documentation
+docs/

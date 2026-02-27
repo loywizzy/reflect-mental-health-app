@@ -52,16 +52,21 @@
 ## 📅 Upcoming (Phase 6)
 
 ### Phase 6: Advanced Features & Chat
-- [ ] **AI Chat Bot** (New Request)
-  - [ ] Database Schema (Conversations, Messages)
-  - [ ] Backend API (`/chat` endpoints)
-  - [ ] Frontend Chat Interface
-  - [ ] Context Management (Memory)
-- [ ] Baseline calculation (personalized comparison)
+- [x] **AI Chat Bot** (New Request)
+  - [x] Database Schema (Conversations, Messages)
+  - [x] Backend API (`/chat` endpoints)
+  - [x] Frontend Chat Interface
+  - [x] Context Management (Memory)
+- [ ] **Baseline Calculation** (Personalized Comparison)
+  - [ ] Implement `calculate_user_baseline` service
+  - [ ] Trigger baseline update on new journal entry
+  - [ ] Expose baseline data in `/insights/dashboard`
+  - [ ] Frontend: Display "Better/Worse than usual" badge
 - [ ] Trend analysis improvements
 - [ ] Export data as PDF report
 - [ ] Email notifications (optional)
 - [ ] Multi-language support (EN/TH toggle)
+- [ ] Data Security & Rate Limiting (New)
 
 ---
 
@@ -80,7 +85,7 @@
 | Phase 1-3 | ✅ Complete | 100% |
 | Phase 4 | ✅ Complete | 100% |
 | Phase 5 | ✅ Complete | 100% |
-| Phase 6 | 📅 Planned | 0% |
+| Phase 6 | � In Progress | 60% |
 | Deployment | 📅 Planned | 0% |
 
-**Overall Progress: ~90%** (5/6 major phases complete)
+**Overall Progress: ~92%**

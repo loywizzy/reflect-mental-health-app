@@ -1,0 +1,8 @@
+{
+  "name": "reflect-mental-health-app-root",
+  "private": true,
+  "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.1.0"
+  }
+}

@@ -4,6 +4,7 @@ from app.api.insights import router as insights_router
 from app.api.users import router as users_router
 from app.api.reflections import router as reflections_router
 from app.api.chat import router as chat_router
+from app.api.backfill import router as backfill_router
 
 __all__ = [
     "auth_router",
@@ -12,5 +13,6 @@ __all__ = [
     "users_router",
     "reflections_router",
     "chat_router",
+    "backfill_router",
     "get_current_user",
 ]

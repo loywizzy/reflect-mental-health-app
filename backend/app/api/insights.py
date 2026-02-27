@@ -20,6 +20,7 @@ from app.schemas import (
     TriggerStatResponse,
     TriggerResponse,
     DashboardResponse,
+    UserBaselineResponse,
 )
 from app.api.auth import get_current_user
 
@@ -159,12 +160,27 @@ def get_dashboard(
         Reflection.user_id == current_user.id
     ).order_by(Reflection.created_at.desc()).first()
 
+    # 6. Get Baseline Data
+    baseline_data = None
+    if baseline:
+        baseline_data = UserBaselineResponse(
+            baseline_sentiment=baseline.baseline_sentiment,
+            baseline_sentence_length=baseline.baseline_sentence_length,
+            baseline_modal_verb_ratio=baseline.baseline_modal_verb_ratio,
+            baseline_negation_ratio=baseline.baseline_negation_ratio,
+            baseline_first_person_ratio=baseline.baseline_first_person_ratio,
+            sample_count=baseline.sample_count,
+            window_days=baseline.window_days,
+            updated_at=baseline.updated_at,
+        )
+
     return DashboardResponse(
         trend_data=trend_data,
         language_drift=language_drift,
         trigger_stats=trigger_stats_response,
         insights=insights,
         latest_reflection=latest_reflection,
+        baseline=baseline_data,
     )
 
 

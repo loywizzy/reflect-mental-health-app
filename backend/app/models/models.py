@@ -163,7 +163,7 @@ class Trigger(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), unique=True, nullable=False)
     name_th = Column(String(100))
-    category = Column(Enum(TriggerCategory), default=TriggerCategory.other)
+    category = Column(Enum(TriggerCategory, values_callable=lambda x: [e.value for e in x]), default=TriggerCategory.other)
     is_system = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 

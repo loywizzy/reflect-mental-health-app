@@ -203,6 +203,25 @@ class TriggerStatResponse(BaseModel):
         from_attributes = True
 
 
+
+# ============================================================
+# BASELINE SCHEMA
+# ============================================================
+
+class UserBaselineResponse(BaseModel):
+    baseline_sentiment: Optional[float] = None
+    baseline_sentence_length: Optional[float] = None
+    baseline_modal_verb_ratio: Optional[float] = None
+    baseline_negation_ratio: Optional[float] = None
+    baseline_first_person_ratio: Optional[float] = None
+    sample_count: int
+    window_days: int
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ============================================================
 # INSIGHT / DASHBOARD SCHEMAS
 # ============================================================
@@ -227,6 +246,7 @@ class DashboardResponse(BaseModel):
     trigger_stats: list[TriggerStatResponse]
     insights: list[str]
     latest_reflection: Optional[ReflectionResponse] = None
+    baseline: Optional[UserBaselineResponse] = None
 
 
 class DailySummaryResponse(BaseModel):
@@ -239,24 +259,6 @@ class DailySummaryResponse(BaseModel):
     top_triggers: Optional[list] = None
     generated_insight: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# ============================================================
-# BASELINE SCHEMA
-# ============================================================
-
-class UserBaselineResponse(BaseModel):
-    baseline_sentiment: Optional[float] = None
-    baseline_sentence_length: Optional[float] = None
-    baseline_modal_verb_ratio: Optional[float] = None
-    baseline_negation_ratio: Optional[float] = None
-    baseline_first_person_ratio: Optional[float] = None
-    sample_count: int
-    window_days: int
-    updated_at: datetime
 
     class Config:
         from_attributes = True
