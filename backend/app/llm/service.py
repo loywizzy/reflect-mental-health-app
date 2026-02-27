@@ -101,25 +101,23 @@ async def generate_chat_response(
     Generate chat response based on history and persona.
     """
     try:
-        # Build Context Prompt
-        system_instruction = f"""
-You are a supportive AI friend for a mental health app.
-Your Persona: {persona} (adjust tone accordingly).
-- Student: Friendly, empathetic, uses youth slang politely.
-- Worker: Professional but warm, understanding of burnout.
-- Teen: Casual, understanding, uses short sentences.
-
-Guidelines:
-- Listen actively and validate feelings.
-- Ask open-ended questions to encourage reflection.
-- Do NOT judge or diagnose.
-- Keep responses concise (under 200 words).
-- If user signals crisis (suicide/self-harm), encourage seeking professional help immediately.
-"""
+        # System instruction — กระชับ ส่ง 1 ครั้ง
+        system_instruction = f"""คุณคือ AI เพื่อนรับฟังในแอป mental health สำหรับ persona: {persona}
+- student: เป็นกันเอง เข้าใจเรื่องการเรียน
+- worker: professional แต่อบอุ่น เข้าใจ burnout
+- teen: สบายๆ ประโยคสั้น
+กฎ: ฟังอย่างตั้งใจ ถามคำถามปลายเปิด ไม่วินิจฉัย ไม่ให้คำสัญญา ตอบไม่เกิน 150 คำ
+ถ้าผู้ใช้พูดถึงการทำร้ายตัวเอง ให้แนะนำสายด่วน 1323 ทันที"""
+        
+        # จำกัด history แค่ 10 messages ล่าสุด เพื่อประหยัด token
+        MAX_HISTORY = 10
+        recent_history = history[-MAX_HISTORY:] if len(history) > MAX_HISTORY else history
         
         # Format History
         transcript = ""
-        for msg in history:
+        if len(history) > MAX_HISTORY:
+            transcript += f"[... {len(history) - MAX_HISTORY} ข้อความก่อนหน้า ...]\n"
+        for msg in recent_history:
             role = "User" if msg.sender == "user" else "AI"
             transcript += f"{role}: {msg.content}\n"
             

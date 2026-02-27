@@ -4,7 +4,10 @@ Handles communication with Google Gemini API
 """
 
 import google.generativeai as genai
+import logging
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # ── Quota Guard (in-memory, resets on restart) ───────────────
 _gemini_call_count: int = 0
@@ -58,13 +61,16 @@ async def generate_text(prompt: str, model_name: str = None) -> dict:
                 temperature=0.7,
                 top_p=0.9,
                 top_k=40,
-                max_output_tokens=4096,
+                max_output_tokens=800,  # reflection ต้องการแค่ ~300 tokens
             ),
         )
         
         # Extract token counts
         prompt_tokens = response.usage_metadata.prompt_token_count if hasattr(response, 'usage_metadata') else 0
         completion_tokens = response.usage_metadata.candidates_token_count if hasattr(response, 'usage_metadata') else 0
+        total = prompt_tokens + completion_tokens
+        
+        logger.info(f"💰 Gemini usage: prompt={prompt_tokens} + output={completion_tokens} = {total} tokens (call #{_gemini_call_count})")
         
         return {
             "text": response.text,
