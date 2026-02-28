@@ -394,8 +394,11 @@ export default function ChatPage() {
                     {/* Input Area */}
                     <div className="p-4 md:p-8 bg-white border-t border-gray-100">
                         <div className="max-w-3xl mx-auto relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-sage-200 to-sage-100 rounded-[3rem] blur opacity-25 group-focus-within:opacity-100 transition duration-1000 group-focus-within:duration-200"></div>
-                            <div className="relative flex gap-3 items-end bg-gray-50 border border-gray-200 rounded-[3rem] p-2 pr-3 focus-within:bg-white focus-within:border-sage-400 transition-all shadow-inner-sm">
+                            {/* Glowing Background Glow - Fixed to rounded-full */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-sage-200 to-sage-100 rounded-full blur opacity-25 group-focus-within:opacity-100 transition duration-1000 group-focus-within:duration-200"></div>
+                            
+                            {/* Main Input Container - Fixed to rounded-full */}
+                            <div className="relative flex gap-3 items-end bg-gray-50 border border-gray-200 rounded-full p-2 pr-3 focus-within:bg-white focus-within:border-sage-400 focus-within:shadow-md transition-all overflow-hidden">
                                 <textarea
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
@@ -406,14 +409,14 @@ export default function ChatPage() {
                                         }
                                     }}
                                     placeholder="เล่าความรู้สึกของคุณให้ AI ฟัง..."
-                                    className="flex-1 px-5 py-3 min-h-[56px] max-h-[200px] bg-transparent border-none focus:ring-0 text-[15px] text-gray-800 placeholder-gray-400 resize-none scrollbar-none"
+                                    className="flex-1 px-5 py-3 min-h-[56px] max-h-[200px] bg-transparent border-0 ring-0 focus:ring-0 focus:outline-none text-[15px] text-gray-800 placeholder-gray-400 resize-none scrollbar-none"
                                     disabled={isLoading}
                                     rows={1}
                                 />
                                 <button
                                     onClick={handleSend}
                                     disabled={!input.trim() || isLoading}
-                                    className="p-3.5 bg-sage-600 text-white rounded-full hover:bg-sage-700 disabled:opacity-30 disabled:grayscale transition-all shadow-md active:scale-95 shrink-0"
+                                    className="p-3.5 bg-sage-600 text-white rounded-full hover:bg-sage-700 disabled:opacity-30 disabled:grayscale transition-all shadow-sm active:scale-95 shrink-0"
                                 >
                                     <Send className="w-5 h-5 ml-0.5" />
                                 </button>
