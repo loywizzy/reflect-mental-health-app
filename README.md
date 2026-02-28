@@ -26,7 +26,8 @@ Reflect เป็น mental health web app ที่ช่วยให้ผู�
 | 📝 **Journal** | เขียนบันทึกได้อิสระ ไม่มีคำถามบังคับ |
 | 📊 **Language Drift** | วิเคราะห์การเปลี่ยนแปลงของภาษา (ความยาวประโยค, คำบ่งบอกแรงกดดัน) |
 | 🎯 **Trigger Map** | แสดงความเชื่อมโยงระหว่างหัวข้อกับแนวโน้มอารมณ์ |
-| 💡 **AI Reflection** | AI สะท้อนและตั้งคำถามปลายเปิด ไม่ตัดสิน |
+| 💡 **AI Reflection** | AI สะท้อนและตั้งคำถามปลายเปิด โดยใช้ Gemini API |
+| 💬 **Interactive Chat** | พูดคุยโต้ตอบกับ AI เพื่อสำรวจความคิดและอารมณ์ |
 | 🛡️ **Crisis Detection** | ตรวจจับคำสำคัญวิกฤต redirect ไปหน้าช่วยเหลือ |
 
 ---
@@ -43,11 +44,13 @@ Reflect เป็น mental health web app ที่ช่วยให้ผู�
 - **PostgreSQL** (Database)
 - **SQLAlchemy** (ORM)
 - **PyThaiNLP** (Thai NLP)
+- **Google Gemini API** (LLM for Reflection & Chat)
 
-### NLP Pipeline (No LLM)
+### NLP & AI Pipeline
 - **Rule-based sentiment analysis** (Thai lexicon)
 - **Linguistic feature extraction** (sentence length, modal verbs, negation)
 - **Crisis keyword detection** (safety-first)
+- **LLM Integration** (Gemini API for context-aware reflection)
 
 ---
 
@@ -57,6 +60,7 @@ Reflect เป็น mental health web app ที่ช่วยให้ผู�
 - Python 3.12+
 - Node.js 18+
 - PostgreSQL 14+
+- **Google Gemini API Key** ([Get one here](https://aistudio.google.com/app/apikey))
 
 ### 1. Clone Repository
 ```bash
@@ -73,7 +77,7 @@ pip install -r requirements.txt
 
 # Create .env file
 cp .env.example .env
-# Edit .env with your database credentials
+# Edit .env with your database and GEMINI_API_KEY
 
 # Run migrations
 alembic upgrade head

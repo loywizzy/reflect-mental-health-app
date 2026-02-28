@@ -96,6 +96,7 @@ logs/
 
 # Brain artifacts (optional - keep for local development)
 .gemini/
+SYSTEM_SUMMARY.md
 
 # Generated documentation
 docs/

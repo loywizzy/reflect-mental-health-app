@@ -89,37 +89,42 @@ def get_dashboard(
             # Calculate deltas
             if baseline.baseline_sentence_length:
                 delta = current_sentence_length - baseline.baseline_sentence_length
-                delta_pct = (delta / baseline.baseline_sentence_length) * 100 if baseline.baseline_sentence_length else 0
+                # ป้องกันเลข % พุ่งสูง (Division by nearly zero)
+                divisor = max(baseline.baseline_sentence_length, 1.0)
+                delta_pct = (delta / divisor) * 100
                 language_drift.append(LanguageDrift(
                     metric="ความยาวประโยค",
                     value=round(current_sentence_length, 1),
                     delta=round(delta, 1),
                     delta_percent=round(delta_pct, 0),
-                    direction="up" if delta > 0 else "down" if delta < 0 else "stable",
+                    direction="up" if delta > 0.5 else "down" if delta < -0.5 else "stable",
                 ))
             
             if baseline.baseline_modal_verb_ratio:
                 baseline_count = baseline.baseline_modal_verb_ratio * baseline.sample_count if baseline.sample_count else 0
                 delta = current_modal_count - baseline_count
-                delta_pct = (delta / baseline_count) * 100 if baseline_count else 0
+                # สำหรับ ratio ที่เป็นเลขทศนิยมเล็กๆ ใช้ 0.5 เป็นค่าพื้นฐานในการเทียบ
+                divisor = max(baseline_count, 0.5)
+                delta_pct = (delta / divisor) * 100
                 language_drift.append(LanguageDrift(
                     metric='การใช้คำ "ต้อง"',
                     value=round(current_modal_count, 1),
                     delta=round(delta, 1),
                     delta_percent=round(delta_pct, 0),
-                    direction="up" if delta > 0 else "down" if delta < 0 else "stable",
+                    direction="up" if delta > 0.2 else "down" if delta < -0.2 else "stable",
                 ))
 
             if baseline.baseline_negation_ratio:
                 baseline_count = baseline.baseline_negation_ratio * baseline.sample_count if baseline.sample_count else 0
                 delta = current_negation_count - baseline_count
-                delta_pct = (delta / baseline_count) * 100 if baseline_count else 0
+                divisor = max(baseline_count, 0.5)
+                delta_pct = (delta / divisor) * 100
                 language_drift.append(LanguageDrift(
                     metric="คำปฏิเสธ",
                     value=round(current_negation_count, 1),
                     delta=round(delta, 1),
                     delta_percent=round(delta_pct, 0),
-                    direction="up" if delta > 0 else "down" if delta < 0 else "stable",
+                    direction="up" if delta > 0.2 else "down" if delta < -0.2 else "stable",
                 ))
     
     # 3. Get Trigger Stats
@@ -147,8 +152,23 @@ def get_dashboard(
     if language_drift:
         for drift in language_drift:
             if abs(drift.delta_percent) >= 15:
-                direction_text = "เพิ่มขึ้น" if drift.direction == "up" else "ลดลง"
-                insights.append(f"ช่วงนี้ {drift.metric} {direction_text} {abs(drift.delta_percent):.0f}% จาก baseline")
+                if drift.metric == "ความยาวประโยค":
+                    if drift.direction == "up":
+                        insights.append("ช่วงนี้คุณเขียนบันทึกยาวขึ้นและมีรายละเอียดมากขึ้น")
+                    else:
+                        insights.append("ช่วงนี้คุณเขียนบันทึกสั้นลง อาจเป็นเพราะความเหนื่อยล้าหรือมีเรื่องกวนใจ")
+                
+                elif drift.metric == 'การใช้คำ "ต้อง"':
+                    if drift.direction == "up":
+                        insights.append("คุณใช้คำว่า 'ต้อง' บ่อยขึ้น อาจกำลังรู้สึกถึงความกดดันหรือภาระที่มากขึ้น")
+                    else:
+                        insights.append("คุณใช้คำว่า 'ต้อง' น้อยลง ดูเหมือนจะเริ่มจัดการความคาดหวังได้ดีขึ้น")
+                
+                elif drift.metric == "คำปฏิเสธ":
+                    if drift.direction == "up":
+                        insights.append("คุณใช้คำเชิงปฏิเสธ (ไม่, ไม่ได้) บ่อยขึ้น อาจเป็นสัญญาณของความขัดแย้งในใจ")
+                    else:
+                        insights.append("คุณใช้คำเชิงปฏิเสธน้อยลง อาจสะท้อนถึงการยอมรับหรือความรู้สึกที่ผ่อนคลายขึ้น")
     
     if trigger_stats_response:
         top_trigger = trigger_stats_response[0]
