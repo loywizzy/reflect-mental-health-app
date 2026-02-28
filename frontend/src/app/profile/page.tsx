@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Navigation } from '@/components/layout/Navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { User, Settings, Download, Trash2, Shield, Loader2, Zap, Check } from 'lucide-react';
+import { User, Settings, Download, Trash2, Shield, Loader2, Zap, Check, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { userApi } from '@/lib/api';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Modal } from '@/components/ui/Modal';
 
 const PERSONA_OPTIONS = ['student', 'worker', 'teen'];
 const PLAN_OPTIONS = ['free', 'pro'];
@@ -21,6 +22,8 @@ export default function ProfilePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPersona, setSelectedPersona] = useState('worker');
     const [isSaving, setIsSaving] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [pendingPlan, setPendingPlan] = useState<string | null>(null);
     const { t } = useLanguage();
 
     useEffect(() => {
@@ -57,6 +60,22 @@ export default function ProfilePage() {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleOpenUpgradeModal = (plan: string) => {
+        if (plan === 'pro' && profile?.plan === 'free') {
+            setPendingPlan(plan);
+            setIsModalOpen(true);
+        } else {
+            handlePlanChange(plan);
+        }
+    };
+
+    const confirmUpgrade = async () => {
+        if (!pendingPlan) return;
+        await handlePlanChange(pendingPlan);
+        setIsModalOpen(false);
+        setPendingPlan(null);
     };
 
     const handlePlanChange = async (plan: string) => {
@@ -252,7 +271,7 @@ export default function ProfilePage() {
                                     variant={profile?.plan === 'pro' ? "secondary" : "primary"}
                                     disabled={profile?.plan === 'pro' || isSaving}
                                     className={cn("w-full text-xs py-2 h-auto", profile?.plan !== 'pro' && "bg-purple-600 hover:bg-purple-700 border-none")}
-                                    onClick={() => handlePlanChange('pro')}
+                                    onClick={() => handleOpenUpgradeModal('pro')}
                                 >
                                     {profile?.plan === 'pro' ? t('profile.currentPlan') : t('profile.selectPlan')}
                                 </Button>
@@ -322,6 +341,48 @@ export default function ProfilePage() {
                         {t('nav.logout')}
                     </Button>
                 </div>
+
+                {/* Upgrade Modal */}
+                <Modal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    title={t('profile.upgradeTitle')}
+                    description={t('profile.upgradeDesc')}
+                    footer={
+                        <>
+                            <Button 
+                                className="bg-purple-600 hover:bg-purple-700 border-none text-white w-full sm:w-auto"
+                                onClick={confirmUpgrade}
+                                isLoading={isSaving}
+                            >
+                                {t('profile.upgradeConfirm')}
+                            </Button>
+                            <Button 
+                                variant="ghost" 
+                                className="w-full sm:w-auto"
+                                onClick={() => setIsModalOpen(false)}
+                            >
+                                {t('common.cancel')}
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4 py-2">
+                        <div className="p-4 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-between">
+                            <span className="font-bold text-purple-700">{t('profile.pro')} Plan</span>
+                            <span className="text-xl font-black text-purple-900">{t('profile.planPricePro')}</span>
+                        </div>
+                        
+                        <div className="space-y-3">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="flex items-center gap-3 text-sm text-gray-700">
+                                    <CheckCircle className="w-5 h-5 text-purple-500 shrink-0" />
+                                    <span>{t(`profile.upgradeFeature${i}` as any)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </Modal>
             </main>
         </div>
     );

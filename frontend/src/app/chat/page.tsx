@@ -4,8 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
 import { chatApi } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Send, User as UserIcon, Bot, MoreVertical, Plus, Menu, X } from 'lucide-react';
+import { Send, User as UserIcon, Bot, Plus, Menu, X, Sparkles, History, MessageCircle } from 'lucide-react';
 import { Navigation } from '@/components/layout/Navigation';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Message {
     id: string;
@@ -19,8 +22,6 @@ interface Conversation {
     title: string;
     messages: Message[];
 }
-
-import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ChatPage() {
     const { user } = useAuth();
@@ -45,7 +46,6 @@ export default function ChatPage() {
         { id: 'teen', emoji: '🌱', label: 'Teen', desc: 'สบายๆ ไม่ตัดสิน เข้าใจวัยรุ่น' },
     ];
 
-    // รับ ?prefill= จาก Reflection component
     useEffect(() => {
         const prefill = searchParams.get('prefill');
         if (prefill) {
@@ -55,7 +55,6 @@ export default function ChatPage() {
         }
     }, [searchParams]);
 
-    // รับ ?conv= จาก Reflection (auto-send เสร็จแล้ว → load conversation นั้น)
     useEffect(() => {
         const convId = searchParams.get('conv');
         if (convId) {
@@ -63,28 +62,32 @@ export default function ChatPage() {
         }
     }, [searchParams]);
 
-    // Load conversations on mount
     useEffect(() => {
-        fetchConversations();
+        const initChat = async () => {
+            await fetchConversations();
+            
+            const urlConv = searchParams.get('conv');
+            const urlPrefill = searchParams.get('prefill');
+            
+            // Auto-load most recent if nothing specified
+            if (!urlConv && !urlPrefill) {
+                const data = await chatApi.getConversations();
+                if (data.length > 0) {
+                    fetchConversationDetails(data[0].id);
+                }
+            }
+        };
+        initChat();
     }, []);
 
-    // Scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [currentConversation?.messages]);
+    }, [currentConversation?.messages, isLoading]);
 
     const fetchConversations = async () => {
         try {
             const data = await chatApi.getConversations();
             setConversations(data);
-
-            const urlConv = searchParams.get('conv');
-            const urlPrefill = searchParams.get('prefill');
-
-            if (data.length > 0 && !currentConversation && !urlConv && !urlPrefill) {
-                // Load most recent
-                fetchConversationDetails(data[0].id);
-            }
         } catch (error) {
             console.error('Failed to fetch conversations', error);
         }
@@ -107,7 +110,6 @@ export default function ChatPage() {
         setPrefillContext(null);
         setIsLoading(true);
 
-        // Optimistic update
         const tempMsg: Message = {
             id: 'temp-' + Date.now(),
             sender: 'user',
@@ -123,7 +125,6 @@ export default function ChatPage() {
         }
 
         try {
-            // ส่ง persona เฉพาะ message แรก (new conversation)
             const personaToSend = !currentConversation ? selectedPersona : undefined;
             const updatedConversation = await chatApi.sendMessage(
                 messageText,
@@ -151,35 +152,45 @@ export default function ChatPage() {
         setShowPersonaPicker(false);
     };
 
+    const getPersonaInfo = (id: string) => PERSONAS.find(p => p.id === id) || PERSONAS[0];
+
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col pb-20 md:pb-0">
+        <div className="flex flex-col h-screen bg-white">
             <Navigation />
 
-            {/* Persona Picker Modal */}
+            {/* Persona Picker Overlay */}
             {showPersonaPicker && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 animate-fade-in">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">🤖 เลือกบุคลิก AI</h3>
-                        <p className="text-sm text-gray-400 mb-5">AI จะปรับโทนภาษาให้เหมาะกับสิ่งที่คุณต้องการคุย</p>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm mx-4 p-8 animate-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center text-center mb-6">
+                            <div className="w-16 h-16 bg-sage-100 rounded-2xl flex items-center justify-center mb-4">
+                                <Sparkles className="w-8 h-8 text-sage-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">เลือกบุคลิก AI</h3>
+                            <p className="text-sm text-gray-500 mt-1">ให้ AI ปรับโทนให้เหมาะกับเรื่องที่คุณต้องการปรึกษา</p>
+                        </div>
 
                         <div className="space-y-3">
                             {PERSONAS.map((p) => (
                                 <button
                                     key={p.id}
-                                    id={`persona-${p.id}`}
                                     onClick={() => confirmPersonaAndStart(p.id)}
-                                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all hover:border-indigo-300 hover:bg-indigo-50/50 ${selectedPersona === p.id
-                                        ? 'border-indigo-500 bg-indigo-50'
-                                        : 'border-slate-100 bg-slate-50'
-                                        }`}
+                                    className={cn(
+                                        "w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all",
+                                        selectedPersona === p.id
+                                            ? "border-sage-500 bg-sage-50 ring-4 ring-sage-500/10"
+                                            : "border-gray-100 bg-gray-50 hover:border-sage-200"
+                                    )}
                                 >
                                     <span className="text-3xl">{p.emoji}</span>
-                                    <div>
-                                        <p className="font-semibold text-slate-800">{p.label}</p>
-                                        <p className="text-xs text-slate-500 mt-0.5">{p.desc}</p>
+                                    <div className="flex-1">
+                                        <p className="font-bold text-gray-800">{p.label}</p>
+                                        <p className="text-[11px] text-gray-500 leading-tight">{p.desc}</p>
                                     </div>
                                     {selectedPersona === p.id && (
-                                        <span className="ml-auto text-indigo-500 text-xs font-medium bg-indigo-100 px-2 py-1 rounded-full">ใช้อยู่</span>
+                                        <div className="w-5 h-5 bg-sage-500 rounded-full flex items-center justify-center">
+                                            <div className="w-2 h-2 bg-white rounded-full" />
+                                        </div>
                                     )}
                                 </button>
                             ))}
@@ -187,7 +198,7 @@ export default function ChatPage() {
 
                         <button
                             onClick={() => setShowPersonaPicker(false)}
-                            className="mt-4 w-full text-sm text-gray-400 hover:text-gray-600 py-2"
+                            className="mt-6 w-full py-2 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
                         >
                             ยกเลิก
                         </button>
@@ -195,168 +206,224 @@ export default function ChatPage() {
                 </div>
             )}
 
-            <div className="flex-1 flex overflow-hidden pt-16 md:pl-64 h-[calc(100vh-4rem)] relative">
-
-                {/* Overlay for mobile sidebar */}
-                {showSidebar && (
-                    <div
-                        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
-                        onClick={() => setShowSidebar(false)}
-                    />
+            <div className="flex-1 flex overflow-hidden relative">
+                
+                {/* Mobile Sidebar Toggle - Floating */}
+                {!showSidebar && (
+                    <button 
+                        onClick={() => setShowSidebar(true)}
+                        className="lg:hidden fixed bottom-24 left-4 z-40 bg-sage-600 text-white p-3 rounded-2xl shadow-lg animate-in slide-in-from-left duration-300"
+                    >
+                        <History className="w-6 h-6" />
+                    </button>
                 )}
 
-                {/* Sidebar (Conversations) */}
-                <div className={`fixed lg:relative inset-y-0 left-0 z-50 w-72 lg:w-64 bg-white border-r flex flex-col transform transition-transform duration-300 ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-                    } pt-16 lg:pt-0`}>
-                    <div className="p-4 border-b flex justify-between items-center">
-                        <button
+                {/* Sidebar (Conversations History) */}
+                <aside className={cn(
+                    "fixed lg:relative inset-y-0 left-0 z-50 w-80 lg:w-72 bg-gray-50 border-r border-gray-100 flex flex-col transform transition-transform duration-300 ease-out",
+                    showSidebar ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+                )}>
+                    <div className="p-6 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+                                <History className="w-4 h-4 text-gray-400" />
+                                {t('chat.title')}
+                            </h2>
+                            <button onClick={() => setShowSidebar(false)} className="lg:hidden p-1 text-gray-400">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <Button 
                             onClick={() => { startNewChat(); setShowSidebar(false); }}
-                            className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition font-medium shadow-sm active:scale-95"
+                            className="w-full justify-start gap-2 mb-6 shadow-sm py-6 bg-sage-600 hover:bg-sage-700"
                         >
                             <Plus className="w-4 h-4" /> {t('chat.newChat')}
-                        </button>
-                        <button
-                            className="p-2 ml-2 lg:hidden text-gray-500 hover:bg-gray-100 rounded-lg"
-                            onClick={() => setShowSidebar(false)}
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-3 space-y-1">
-                        {conversations.map(conv => (
-                            <button
-                                key={conv.id}
-                                onClick={() => { fetchConversationDetails(conv.id); setShowSidebar(false); }}
-                                className={`w-full text-left px-4 py-3 rounded-xl text-sm truncate transition-colors ${currentConversation?.id === conv.id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                {conv.title || t('chat.newChat')}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                        </Button>
 
-                {/* Chat Area */}
-                <div className="flex-1 flex flex-col bg-white w-full lg:w-auto overflow-hidden">
+                        <div className="flex-1 overflow-y-auto space-y-2 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-200">
+                            {conversations.map(conv => (
+                                <button
+                                    key={conv.id}
+                                    onClick={() => { fetchConversationDetails(conv.id); setShowSidebar(false); }}
+                                    className={cn(
+                                        "w-full text-left px-4 py-3.5 rounded-2xl text-sm transition-all flex items-center gap-3",
+                                        currentConversation?.id === conv.id 
+                                            ? "bg-white text-sage-700 font-bold shadow-sm ring-1 ring-black/5" 
+                                            : "text-gray-500 hover:bg-white/50 hover:text-gray-700"
+                                    )}
+                                >
+                                    <MessageCircle className={cn("w-4 h-4 flex-shrink-0", currentConversation?.id === conv.id ? "text-sage-500" : "text-gray-300")} />
+                                    <span className="truncate">{conv.title || t('chat.newChat')}</span>
+                                </button>
+                            ))}
+                        </div>
 
-                    {/* Header */}
-                    <div className="h-16 border-b flex items-center px-4 md:px-6 justify-between flex-shrink-0">
-                        <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="mt-4 p-4 rounded-2xl bg-sage-100/50 border border-sage-200/50">
+                            <p className="text-[10px] font-bold text-sage-700 uppercase tracking-widest mb-1">Your AI Persona</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">{getPersonaInfo(selectedPersona).emoji}</span>
+                                <span className="text-xs font-semibold text-sage-800">{getPersonaInfo(selectedPersona).label}</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                {/* Main Chat Area */}
+                <main className="flex-1 flex flex-col min-w-0 bg-white relative">
+                    
+                    {/* Chat Header */}
+                    <div className="h-16 border-b border-gray-100 flex items-center px-6 justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30">
+                        <div className="flex items-center gap-3 min-w-0">
                             <button
-                                className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-50 rounded-lg flex-shrink-0"
+                                className="lg:hidden p-2 -ml-2 text-gray-400 hover:bg-gray-50 rounded-xl"
                                 onClick={() => setShowSidebar(true)}
                             >
                                 <Menu className="w-5 h-5" />
                             </button>
-                            <h2 className="font-semibold text-gray-800 truncate mr-2">
-                                {currentConversation ? (currentConversation.title || t('chat.newChat')) : t('chat.newChat')}
-                            </h2>
+                            <div className="flex flex-col min-w-0">
+                                <h2 className="font-bold text-gray-900 truncate">
+                                    {currentConversation ? (currentConversation.title || t('chat.newChat')) : t('chat.newChat')}
+                                </h2>
+                                <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                    AI Reflection Mode
+                                </div>
+                            </div>
                         </div>
-                        {/* Active persona badge — กดเพื่อเปลี่ยน (new chat เท่านั้น) */}
-                        {!currentConversation ? (
-                            <button
-                                onClick={startNewChat}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-medium hover:bg-indigo-100 transition-colors shadow-sm flex-shrink-0"
-                            >
-                                <span className="hidden sm:inline">{PERSONAS.find(p => p.id === selectedPersona)?.emoji}</span>
-                                <span className="truncate max-w-[80px] sm:max-w-none">{PERSONAS.find(p => p.id === selectedPersona)?.label}</span>
-                                <span className="text-indigo-400">▾</span>
-                            </button>
-                        ) : (
-                            <span className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 flex-shrink-0 truncate max-w-[120px] sm:max-w-none">
-                                <span className="hidden sm:inline">{PERSONAS.find(p => p.id === selectedPersona)?.emoji}</span>
-                                <span className="truncate">{PERSONAS.find(p => p.id === selectedPersona)?.label}</span>
-                            </span>
-                        )}
+
+                        {/* Active Persona Badge */}
+                        <button
+                            onClick={startNewChat}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-gray-600 hover:bg-gray-100 transition-all group"
+                        >
+                            <span className="text-sm">{getPersonaInfo(selectedPersona).emoji}</span>
+                            <span className="text-xs font-bold hidden sm:inline">{getPersonaInfo(selectedPersona).label}</span>
+                            {!currentConversation && <Sparkles className="w-3 h-3 text-sage-500 group-hover:rotate-12 transition-transform" />}
+                        </button>
                     </div>
 
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-slate-50/50 min-h-0">
-                        {/* Prefill context banner */}
+                    {/* Messages Window */}
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-white scroll-smooth">
+                        
+                        {/* Context Banner */}
                         {prefillContext && !currentConversation && (
-                            <div className="mx-4 mt-4 p-3 rounded-xl bg-indigo-50 border border-indigo-100 flex items-start gap-2">
-                                <span className="text-lg">💬</span>
-                                <div>
-                                    <p className="text-xs font-medium text-indigo-700 mb-0.5">ตอบจาก AI Reflection</p>
-                                    <p className="text-xs text-indigo-600 line-clamp-2">{prefillContext}</p>
+                            <div className="max-w-2xl mx-auto p-4 rounded-3xl bg-sage-50 border border-sage-100 flex items-start gap-4 animate-in slide-in-from-top duration-500">
+                                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                                    <Sparkles className="w-5 h-5 text-sage-500" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-bold text-sage-600 uppercase tracking-widest mb-1">Context from Reflection</p>
+                                    <p className="text-sm text-sage-800 leading-relaxed italic">&quot;{prefillContext}&quot;</p>
                                 </div>
                                 <button
                                     onClick={() => { setPrefillContext(null); setInput(''); }}
-                                    className="ml-auto text-indigo-300 hover:text-indigo-500 text-xs"
-                                >×</button>
+                                    className="p-1 text-sage-300 hover:text-sage-500 transition-colors"
+                                ><X className="w-4 h-4" /></button>
                             </div>
                         )}
 
+                        {/* Welcome State */}
                         {!currentConversation && conversations.length === 0 && (
-                            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                                <Bot className="w-16 h-16 mb-4 opacity-20" />
-                                <p>{t('chat.placeholder')}</p>
+                            <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto animate-in fade-in zoom-in duration-700">
+                                <div className="w-20 h-20 bg-sage-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner">
+                                    <Bot className="w-10 h-10 text-sage-400" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">เริ่มบทสนทนาใหม่</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed">พิมพ์ความรู้สึกหรือเรื่องที่คุณอยากคุยได้เลย AI พร้อมรับฟังและสะท้อนมุมมองที่ช่วยให้คุณเข้าใจตัวเองมากขึ้น</p>
                             </div>
                         )}
 
-                        {currentConversation?.messages.map((msg) => (
-                            <div
-                                key={msg.id}
-                                className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                            >
-                                <div className={`flex max-w-[85%] md:max-w-[75%] gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${msg.sender === 'user' ? 'bg-indigo-100 text-indigo-600' : 'bg-white border border-slate-100 text-sage-600'
-                                        }`}>
-                                        {msg.sender === 'user' ? <UserIcon size={18} /> : <Bot size={20} />}
-                                    </div>
-                                    <div className={`px-5 py-3.5 rounded-[20px] shadow-sm ${msg.sender === 'user'
-                                        ? 'bg-indigo-600 text-white rounded-tr-sm'
-                                        : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'
-                                        }`}>
-                                        <p className="whitespace-pre-wrap leading-relaxed text-[15px]">{msg.content}</p>
+                        {/* Messages List */}
+                        <div className="max-w-3xl mx-auto space-y-8">
+                            {currentConversation?.messages.map((msg) => (
+                                <div
+                                    key={msg.id}
+                                    className={cn(
+                                        "flex w-full animate-in duration-300",
+                                        msg.sender === 'user' ? "justify-end slide-in-from-right-4" : "justify-start slide-in-from-left-4"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "flex gap-3 md:gap-4 max-w-[90%] md:max-w-[80%]",
+                                        msg.sender === 'user' ? "flex-row-reverse" : "flex-row"
+                                    )}>
+                                        <div className={cn(
+                                            "w-8 h-8 md:w-10 md:h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+                                            msg.sender === 'user' ? "bg-sage-600 text-white" : "bg-white border border-gray-100 text-sage-600"
+                                        )}>
+                                            {msg.sender === 'user' ? <UserIcon size={16} className="md:w-5 md:h-5" /> : <Bot size={18} className="md:w-6 md:h-6" />}
+                                        </div>
+                                        <div className={cn(
+                                            "px-5 py-3.5 rounded-[2rem] shadow-sm text-[15px] leading-relaxed",
+                                            msg.sender === 'user'
+                                                ? "bg-sage-600 text-white rounded-tr-sm"
+                                                : "bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-sm"
+                                        )}>
+                                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                                            <p className={cn(
+                                                "text-[9px] mt-2 opacity-50 font-medium uppercase tracking-tighter",
+                                                msg.sender === 'user' ? "text-right" : "text-left"
+                                            )}>
+                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                        {isLoading && (
-                            <div className="flex w-full justify-start">
-                                <div className="flex max-w-[85%] md:max-w-[75%] gap-3">
-                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white border border-slate-100 text-sage-600 flex items-center justify-center shadow-sm">
-                                        <Bot size={20} />
-                                    </div>
-                                    <div className="bg-white border border-slate-100 shadow-sm px-5 py-4 rounded-[20px] rounded-tl-sm flex items-center gap-1.5 h-[52px]">
-                                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div>
-                                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce delay-75"></div>
-                                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce delay-150"></div>
+                            ))}
+
+                            {/* Thinking State */}
+                            {isLoading && (
+                                <div className="flex w-full justify-start animate-in fade-in duration-300">
+                                    <div className="flex gap-3 md:gap-4">
+                                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-white border border-gray-100 text-sage-600 flex items-center justify-center shadow-sm">
+                                            <Bot size={18} className="md:w-6 md:h-6" />
+                                        </div>
+                                        <div className="bg-gray-50 border border-gray-100 shadow-sm px-6 py-4 rounded-[2rem] rounded-tl-sm flex items-center gap-1.5 h-[52px]">
+                                            <div className="w-1.5 h-1.5 bg-sage-400 rounded-full animate-bounce duration-700" />
+                                            <div className="w-1.5 h-1.5 bg-sage-400 rounded-full animate-bounce duration-700 [animation-delay:0.2s]" />
+                                            <div className="w-1.5 h-1.5 bg-sage-400 rounded-full animate-bounce duration-700 [animation-delay:0.4s]" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
+                            )}
+                        </div>
+                        <div ref={messagesEndRef} className="h-4" />
                     </div>
 
-                    {/* Input */}
-                    <div className="p-4 md:p-5 border-t border-slate-100 bg-white">
-                        <div className="flex gap-3 max-w-4xl mx-auto items-end">
-                            <textarea
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleSend();
-                                    }
-                                }}
-                                placeholder="พิมพ์ข้อความที่นี่... (Shift+Enter เพื่อขึ้นบรรทัดใหม่)"
-                                className="flex-1 px-4 py-3 min-h-[52px] max-h-[160px] rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50 focus:bg-white resize-none transition-all text-slate-700 placeholder-slate-400"
-                                disabled={isLoading}
-                                rows={1}
-                            />
-                            <button
-                                onClick={handleSend}
-                                disabled={!input.trim() || isLoading}
-                                className="p-3.5 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm flex-shrink-0"
-                            >
-                                <Send className="w-5 h-5 ml-0.5" />
-                            </button>
+                    {/* Input Area */}
+                    <div className="p-4 md:p-8 bg-white border-t border-gray-100">
+                        <div className="max-w-3xl mx-auto relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-sage-200 to-sage-100 rounded-[3rem] blur opacity-25 group-focus-within:opacity-100 transition duration-1000 group-focus-within:duration-200"></div>
+                            <div className="relative flex gap-3 items-end bg-gray-50 border border-gray-200 rounded-[3rem] p-2 pr-3 focus-within:bg-white focus-within:border-sage-400 transition-all shadow-inner-sm">
+                                <textarea
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSend();
+                                        }
+                                    }}
+                                    placeholder="เล่าความรู้สึกของคุณให้ AI ฟัง..."
+                                    className="flex-1 px-5 py-3 min-h-[56px] max-h-[200px] bg-transparent border-none focus:ring-0 text-[15px] text-gray-800 placeholder-gray-400 resize-none scrollbar-none"
+                                    disabled={isLoading}
+                                    rows={1}
+                                />
+                                <button
+                                    onClick={handleSend}
+                                    disabled={!input.trim() || isLoading}
+                                    className="p-3.5 bg-sage-600 text-white rounded-full hover:bg-sage-700 disabled:opacity-30 disabled:grayscale transition-all shadow-md active:scale-95 shrink-0"
+                                >
+                                    <Send className="w-5 h-5 ml-0.5" />
+                                </button>
+                            </div>
+                            <p className="mt-3 text-center text-[10px] text-gray-400 font-medium">
+                                AI Reflection is here to listen and reflect, not to diagnose or advise.
+                            </p>
                         </div>
                     </div>
-                </div>
+                </main>
             </div>
         </div>
     );

@@ -93,6 +93,13 @@ export const th = {
         planPricePro: "฿149 / เดือน",
         currentPlan: "แผนปัจจุบัน",
         selectPlan: "เลือกแผนนี้",
+        upgradeTitle: "ยืนยันการอัปเกรดแผน",
+        upgradeDesc: "คุณกำลังจะอัปเกรดเป็นแผน Pro เพื่อรับฟีเจอร์ที่มากขึ้น",
+        upgradeConfirm: "ยืนยันการอัปเกรด",
+        upgradeFeature1: "AI Reflection 100 ครั้งต่อวัน",
+        upgradeFeature2: "ระบบแชทโต้ตอบไม่จำกัด",
+        upgradeFeature3: "สถิติเชิงลึกรายเดือน",
+        upgradeFeature4: "รองรับการส่งออกข้อมูลแบบ PDF",
     },
     persona: {
         student: { label: "🎓 นักเรียน / นักศึกษา", desc: "กำลังเรียนอยู่" },

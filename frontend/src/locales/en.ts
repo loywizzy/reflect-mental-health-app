@@ -95,6 +95,13 @@ export const en: Translations = {
         planPricePro: "฿149 / month",
         currentPlan: "Current Plan",
         selectPlan: "Select this Plan",
+        upgradeTitle: "Confirm Upgrade",
+        upgradeDesc: "You are about to upgrade to the Pro plan for more features.",
+        upgradeConfirm: "Confirm Upgrade",
+        upgradeFeature1: "100 AI Reflections per day",
+        upgradeFeature2: "Unlimited AI Chat",
+        upgradeFeature3: "Monthly deep insights",
+        upgradeFeature4: "PDF Data Export support",
     },
     persona: {
         student: { label: "🎓 Student", desc: "Currently studying" },
