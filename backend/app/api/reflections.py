@@ -92,6 +92,8 @@ async def create_reflection(
     # Generate reflection
     try:
         result = await generate_reflection(
+            db=db,
+            user_id=current_user.id,
             content=entry.content,
             persona=current_user.persona.value,
             sentiment_score=analysis.sentiment_score if analysis else None,

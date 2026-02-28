@@ -14,10 +14,11 @@ from app.models.models import (
     EmotionType,
     TriggerCategory,
     LanguageType,
-    LanguageType,
     ThemeType,
+    PlanType,
     Conversation,
     Message,
+    UserAIUsage,
 )
 
 __all__ = [
@@ -37,6 +38,8 @@ __all__ = [
     "TriggerCategory",
     "LanguageType",
     "ThemeType",
+    "PlanType",
     "Conversation",
     "Message",
+    "UserAIUsage",
 ]

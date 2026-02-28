@@ -46,9 +46,15 @@ class ThemeType(str, enum.Enum):
     dark = "dark"
 
 
+class PlanType(str, enum.Enum):
+    free = "free"
+    pro = "pro"
+    admin = "admin"
+
+
 # ============================================================
 # MODELS
-# ============================================================
+# ============================================
 
 class User(Base):
     __tablename__ = "users"
@@ -57,6 +63,7 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     persona = Column(Enum(PersonaType), default=PersonaType.worker)
+    plan = Column(Enum(PlanType), default=PlanType.free)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -69,6 +76,21 @@ class User(Base):
     daily_summaries = relationship("DailySummary", back_populates="user", cascade="all, delete-orphan")
     baseline = relationship("UserBaseline", back_populates="user", uselist=False, cascade="all, delete-orphan")
     conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
+    ai_usage = relationship("UserAIUsage", back_populates="user", cascade="all, delete-orphan")
+
+
+class UserAIUsage(Base):
+    __tablename__ = "user_ai_usage"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    usage_date = Column(Date, default=datetime.utcnow().date(), nullable=False)
+    call_count = Column(Integer, default=0)
+    
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="ai_usage")
 
 
 class UserSettings(Base):

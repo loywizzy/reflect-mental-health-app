@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core import get_db, get_password_hash
-from app.models import User, UserSettings, JournalEntry
+from app.models import User, UserSettings, JournalEntry, UserAIUsage, PlanType
+from app.llm.provider import PLAN_LIMITS
 from app.schemas import (
     UserResponse,
     UserUpdate,
@@ -20,26 +21,39 @@ def get_current_user_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get current user's full profile with stats."""
-    # Count journal entries
+    """Get current user's full profile with stats and AI plan."""
+    # 1. Count journal entries
     journal_count = db.query(JournalEntry).filter(
         JournalEntry.user_id == current_user.id
     ).count()
     
-    # Calculate days active
-    # Ensure created_at is naive if needed, or make utcnow aware. 
-    # Simpler: use naive utcnow and naive created_at (User defaults are utcnow)
+    # 2. Calculate days active
     created_at_naive = current_user.created_at.replace(tzinfo=None) if current_user.created_at.tzinfo else current_user.created_at
     days_active = (datetime.utcnow() - created_at_naive).days + 1
+    
+    # 3. Get daily AI usage
+    today = datetime.utcnow().date()
+    usage = db.query(UserAIUsage).filter(
+        UserAIUsage.user_id == current_user.id,
+        UserAIUsage.usage_date == today
+    ).first()
+    ai_usage_count = usage.call_count if usage else 0
+    
+    # 4. Get plan limit
+    plan = current_user.plan or PlanType.free
+    ai_usage_limit = PLAN_LIMITS.get(plan, 10)
     
     return UserWithSettings(
         id=current_user.id,
         email=current_user.email,
         persona=current_user.persona,
+        plan=plan,
         is_active=current_user.is_active,
         created_at=current_user.created_at,
         journal_count=journal_count,
         days_active=days_active,
+        ai_usage_count=ai_usage_count,
+        ai_usage_limit=ai_usage_limit
     )
 
 
@@ -52,6 +66,9 @@ def update_current_user(
     """Update current user's profile."""
     if user_data.persona is not None:
         current_user.persona = user_data.persona
+    
+    if user_data.plan is not None:
+        current_user.plan = user_data.plan
     
     db.commit()
     db.refresh(current_user)

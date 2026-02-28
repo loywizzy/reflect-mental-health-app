@@ -2,7 +2,7 @@ from datetime import date, datetime
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from app.models import PersonaType, EmotionType, TriggerCategory, LanguageType, ThemeType
+from app.models import PersonaType, EmotionType, TriggerCategory, LanguageType, ThemeType, PlanType
 
 
 # ============================================================
@@ -25,11 +25,13 @@ class UserLogin(BaseModel):
 
 class UserUpdate(BaseModel):
     persona: Optional[PersonaType] = None
+    plan: Optional[PlanType] = None
 
 
 class UserResponse(UserBase):
     id: UUID
     persona: PersonaType
+    plan: PlanType
     is_active: bool
     created_at: datetime
 
@@ -40,6 +42,8 @@ class UserResponse(UserBase):
 class UserWithSettings(UserResponse):
     journal_count: int = 0
     days_active: int = 0
+    ai_usage_count: int = 0
+    ai_usage_limit: int = 10
 
 
 # ============================================================

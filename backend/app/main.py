@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core import settings
 from app.core.limiter import setup_limiter
+from app.core.database import Base, engine
+from app.models import models # Ensure all models are registered
 from app.api import auth_router, journal_router, insights_router, users_router, reflections_router, chat_router, backfill_router
 
 # Create FastAPI app
@@ -63,6 +65,15 @@ async def startup_event():
     """Run on application startup."""
     print("🚀 Reflect API is starting...")
     print(f"📍 Environment: {settings.environment}")
+    
+    # Automatic table creation (useful for dev/prototype)
+    print("📦 Initializing database tables...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables verified/created.")
+    except Exception as e:
+        print(f"❌ Error creating database tables: {e}")
+
     print(f"🤖 Gemini Model Configured: {settings.gemini_model}")
     import os
     print(f"🌍 Env Var GEMINI_MODEL: {os.getenv('GEMINI_MODEL')}")

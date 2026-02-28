@@ -92,6 +92,8 @@ async def send_message(
     # Call Service — ใช้ persona จาก request ก่อน ถ้าไม่มีใช้ user default
     effective_persona = request.persona or str(current_user.persona.value if hasattr(current_user.persona, 'value') else current_user.persona)
     ai_response_text = await generate_chat_response(
+        db=db,
+        user_id=current_user.id,
         history=history,
         current_message=request.message,
         persona=effective_persona

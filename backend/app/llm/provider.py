@@ -5,31 +5,63 @@ Handles communication with Google Gemini API
 
 import google.generativeai as genai
 import logging
+from datetime import datetime
+from sqlalchemy.orm import Session
 from app.core.config import settings
+from app.models.models import User, UserAIUsage, PlanType
 
 logger = logging.getLogger(__name__)
 
-# ── Quota Guard (in-memory, resets on restart) ───────────────
-_gemini_call_count: int = 0
+# Plan Limits (calls per day)
+PLAN_LIMITS = {
+    PlanType.free: 10,
+    PlanType.pro: 100,
+    PlanType.admin: 1000
+}
 
-
-def check_gemini_quota() -> None:
-    """Increment call counter and raise if daily limit exceeded."""
-    global _gemini_call_count
-    _gemini_call_count += 1
-    limit = settings.gemini_daily_limit
-    if _gemini_call_count > limit:
-        raise Exception(
-            f"Gemini daily quota exceeded ({_gemini_call_count}/{limit}). "
-            "Restart the server to reset, or increase gemini_daily_limit in config."
-        )
-    if _gemini_call_count > limit * 0.9:
-        print(f"⚠️  Gemini quota warning: {_gemini_call_count}/{limit} calls used")
+def check_user_gemini_quota(db: Session, user_id: str) -> int:
+    """
+    Check and increment user's daily AI usage quota.
+    Returns: Current call count for the user today.
+    Raises: Exception if quota exceeded.
+    """
+    # 1. Get user and their plan
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise Exception("User not found for quota check")
+    
+    plan = user.plan or PlanType.free
+    limit = PLAN_LIMITS.get(plan, 10)
+    
+    # 2. Get or create daily usage record
+    today = datetime.utcnow().date()
+    usage = db.query(UserAIUsage).filter(
+        UserAIUsage.user_id == user_id,
+        UserAIUsage.usage_date == today
+    ).first()
+    
+    if not usage:
+        usage = UserAIUsage(user_id=user_id, usage_date=today, call_count=0)
+        db.add(usage)
+        db.flush()
+    
+    # 3. Check limit
+    if usage.call_count >= limit:
+        raise Exception(f"Daily AI limit reached ({usage.call_count}/{limit}). Please upgrade to Pro for more reflections.")
+    
+    # 4. Increment
+    usage.call_count += 1
+    db.commit()
+    
+    return usage.call_count
 
 
 def configure_gemini():
     """Configure Gemini API with key from settings"""
-    genai.configure(api_key=settings.gemini_api_key)
+    if settings.gemini_api_key:
+        genai.configure(api_key=settings.gemini_api_key)
+    else:
+        logger.warning("GEMINI_API_KEY not set!")
 
 
 def get_gemini_model(model_name: str = None):
@@ -40,18 +72,13 @@ def get_gemini_model(model_name: str = None):
     return genai.GenerativeModel(model_name)
 
 
-async def generate_text(prompt: str, model_name: str = None) -> dict:
+async def generate_text(prompt: str, db: Session, user_id: str, model_name: str = None) -> dict:
     """
-    Generate text using Gemini API
+    Generate text using Gemini API with per-user quota check
+    """
+    # Check Quota first
+    call_num = check_user_gemini_quota(db, user_id)
     
-    Args:
-        prompt: The prompt to send to Geminine
-        model_name: Optional model override
-        
-    Returns:
-        dict with 'text', 'prompt_tokens', 'completion_tokens'
-    """
-    check_gemini_quota()
     try:
         model = get_gemini_model(model_name)
         
@@ -61,16 +88,15 @@ async def generate_text(prompt: str, model_name: str = None) -> dict:
                 temperature=0.7,
                 top_p=0.9,
                 top_k=40,
-                max_output_tokens=800,  # reflection ต้องการแค่ ~300 tokens
+                max_output_tokens=800,
             ),
         )
         
         # Extract token counts
         prompt_tokens = response.usage_metadata.prompt_token_count if hasattr(response, 'usage_metadata') else 0
         completion_tokens = response.usage_metadata.candidates_token_count if hasattr(response, 'usage_metadata') else 0
-        total = prompt_tokens + completion_tokens
         
-        logger.info(f"💰 Gemini usage: prompt={prompt_tokens} + output={completion_tokens} = {total} tokens (call #{_gemini_call_count})")
+        logger.info(f"💰 Gemini usage [User: {user_id}]: {prompt_tokens + completion_tokens} tokens (call #{call_num})")
         
         return {
             "text": response.text,
@@ -79,4 +105,5 @@ async def generate_text(prompt: str, model_name: str = None) -> dict:
         }
         
     except Exception as e:
+        logger.error(f"Gemini API error: {str(e)}")
         raise Exception(f"Gemini API error: {str(e)}")

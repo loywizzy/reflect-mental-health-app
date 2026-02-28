@@ -6,6 +6,7 @@ Main service for generating reflections using Gemini
 from .provider import generate_text, configure_gemini
 from .prompts import build_reflection_prompt
 from .safety import validate_reflection, get_fallback_reflection
+from sqlalchemy.orm import Session
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,8 @@ configure_gemini()
 
 
 async def generate_reflection(
+    db: Session,
+    user_id: str,
     content: str,
     persona: str = "worker",
     sentiment_score: float = None,
@@ -26,6 +29,8 @@ async def generate_reflection(
     Generate AI reflection for a journal entry
     
     Args:
+        db: SQLAlchemy session
+        user_id: User UUID
         content: Journal entry content
         persona: User persona (student/worker/teen)
         sentiment_score: Sentiment score from NLP
@@ -47,8 +52,8 @@ async def generate_reflection(
         )
         
         # Generate using Gemini
-        logger.info(f"Generating reflection for persona={persona}")
-        result = await generate_text(prompt)
+        logger.info(f"Generating reflection for user={user_id} persona={persona}")
+        result = await generate_text(prompt, db, user_id)
         
         reflection_text = result["text"]
         
@@ -93,6 +98,8 @@ async def generate_reflection(
 
 
 async def generate_chat_response(
+    db: Session,
+    user_id: str,
     history: list,
     current_message: str,
     persona: str = "worker"
@@ -124,8 +131,8 @@ async def generate_chat_response(
         prompt = f"{system_instruction}\n\nConversation History:\n{transcript}User: {current_message}\nAI:"
 
         # Generate
-        logger.info(f"Generating chat response for persona={persona}")
-        result = await generate_text(prompt)
+        logger.info(f"Generating chat response for user={user_id} persona={persona}")
+        result = await generate_text(prompt, db, user_id)
         text = result["text"]
         
         # Validate (Safety)
